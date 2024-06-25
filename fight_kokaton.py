@@ -7,7 +7,7 @@ import pygame as pg
 
 WIDTH = 1100  # ゲームウィンドウの幅
 HEIGHT = 650  # ゲームウィンドウの高さ
-NUM_OF_BOMBS = 5 # 爆弾の個数
+NUM_OF_BOMBS = 5  # 爆弾の個数
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -96,8 +96,8 @@ class Beam:
         """
         self.img = pg.image.load(f"fig/beam.png")
         self.rct = self.img.get_rect()
-        self.rct.centery = bird.rct.centery #こうかとん中心縦座標をビーム中心縦座標に設定
-        self.rct.left = bird.rct.right #こうかとん右座標をビーム左座標に設定
+        self.rct.centery = bird.rct.centery  # こうかとんの中心縦座標をビームの中心縦座標に設定
+        self.rct.left = bird.rct.right  # こうかとん右座標をビーム左座標に設定
         self.vx, self.vy = +5, 0
 
     def update(self, screen: pg.Surface):
@@ -147,8 +147,9 @@ def main():
     bg_img = pg.image.load("fig/pg_bg.jpg")
     bird = Bird((300, 200))
     beam = None
+    score = Score() # scoreインスタンスの作成
     # bomb = Bomb((255, 0, 0), 10)
-    bombs = [ Bomb ((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]
+    bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]
     clock = pg.time.Clock()
     tmr = 0
     while True:
@@ -157,7 +158,7 @@ def main():
                 return
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 # スペースキー押下でBeamクラスのインスタンス生成
-                beam = Beam(bird)            
+                beam = Beam(bird)
         screen.blit(bg_img, [0, 0])
         
         for bomb in bombs:
@@ -170,24 +171,43 @@ def main():
                 pg.display.update()
                 time.sleep(5)
                 return
-            
+
         for i in range(len(bombs)):
             if beam is not None:
                 if bombs[i].rct.colliderect(beam.rct):
                     bombs[i] = None
                     beam = None
                     bird.change_img(6, screen)
+                    score.value += 1 # 爆弾を撃ち落としたらスコアプラス1点
         bombs = [bomb for bomb in bombs if bomb is not None]
+
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
         if beam is not None:
-            beam.update(screen)   
-        if bomb is not bombs:
+            beam.update(screen)
+        for bomb in bombs:
             bomb.update(screen)
+        score.update(screen) # スコアを描画
         pg.display.update()
         tmr += 1
         clock.tick(50)
 
+class Score:
+    """
+    打ち落とした爆弾数をスコア表示するクラス
+    爆弾：1点
+    """
+    def __init__(self):
+        self.font = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)
+        self.color = (0, 0, 255)
+        self.value = 0
+        self.image = self.font.render(f"Score: {self.value}", 0, self.color)
+        self.rect = self.image.get_rect()
+        self.rect.center = 100, HEIGHT-50
+
+    def update(self, screen: pg.Surface):
+        self.image = self.font.render(f"Score: {self.value}", 0, self.color)
+        screen.blit(self.image, self.rect)
 
 if __name__ == "__main__":
     pg.init()
